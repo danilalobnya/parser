@@ -1,38 +1,49 @@
 import requests
 import sqlite3
+import json
 
 
-'''
-db = sqlite3.connect('vacancies.db')
+# создание базы данных
+def create_table():
 
-c = db.cursor()
+    db = sqlite3.connect('vacancies.db')
 
-c.execute("""CREATE TABLE vacancies (
-    id integer,
-    title text,
-    url text,
-    requirments text,
-    responsibilities text,
-    company_name text
-    )
-""")
+    c = db.cursor()
 
-db.commit()
+    c.execute("""CREATE TABLE IF NOT EXISTS vacancies (
+        id integer PRIMARY KEY,
+        title text,
+        url text,
+        requirements text,
+        responsibilities text,
+        company_name text
+        )
+    """)
 
-db.close()
-'''
+    db.commit()
 
-def get_vacancies(text, area, pages):
+    db.close()
+
+    print("таблица создана")
+
+
+# запись данных в базу данных
+
+
+def get_vacancies(text):
+
+    create_table()
+
     url = "https://api.hh.ru/vacancies"
-    for page in range(pages):
+    for page in range(1):
         params = {
             "text": text,  # ключевое слово для поиска вакансии
-            "area": area,  # регион (1 - Москва)
+            "area": 1,  # регион (1 - Москва)
             # "experience": experience, # опыт работы
             # "employment": employment, # тип занятости
             # "schedule": schedule, # график работы
             "page": page, # номер страницы
-            "per_page": 10 # количество вакансий на одну страницу
+            "per_page": 100 # количество вакансий на одну страницу
         }
         headers = {
             "User-Agent": "User-Agent"
@@ -41,18 +52,34 @@ def get_vacancies(text, area, pages):
         response = requests.get(url, params=params, headers=headers)
 
         if response.status_code == 200:
-            data = response.json()
-            vacancies = data.get("items", [])
+            data = response.content.decode()
+            vacancies = json.loads(data)['items']
             for vacancy in vacancies:
                 id = vacancy.get("id")
                 title = vacancy.get("name")
                 url = vacancy.get("alternate_url")
-                requirments = vacancy.get("snippet", {}).get("requirment")
+                requirements = vacancy.get("snippet", {}).get("requirement")
                 responsibilities = vacancy.get("snippet", {}).get("responsibility")
                 company_name = vacancy.get("employer", {}).get("name")
-                print(f"ID: {id}\nНазвание: {title}\nКомпания: {company_name}\nТребования: {requirments}\nОбязанности: {responsibilities}\nСсылка: {url}\n")
+                print(f"ID: {id}\nНазвание: {title}\nКомпания: {company_name}\nТребования: {requirements}\nОбязанности: {responsibilities}\nСсылка: {url}\n")
+
+                # запись в базу данных
+
+                db = sqlite3.connect('vacancies.db')
+
+                c = db.cursor()
+
+                c.execute('''INSERT OR IGNORE INTO vacancies 
+                (id, title, url, requirements, responsibilities, company_name) 
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (id, title, url, requirements, responsibilities, company_name))
+
+                db.commit()
+
+                db.close()
+
         else:
             print(f"Request failed with status code: {response.status_code}")
 
 
-get_vacancies("python", 1, 1)
+get_vacancies("python")

@@ -58,7 +58,8 @@ def get_data(link):
         "name": name,
         "age": age,
         "salary": salary,
-        "tags": tags
+        "tags": tags,
+        "link": link
     }
     return resume
 
