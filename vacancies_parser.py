@@ -46,7 +46,7 @@ def get_vacancies(text):
             "per_page": 100 # количество вакансий на одну страницу
         }
         headers = {
-            "User-Agent": "User-Agent"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.6.0.0 Safari/537.36"
         }
 
         response = requests.get(url, params=params, headers=headers)
@@ -61,25 +61,10 @@ def get_vacancies(text):
                 requirements = vacancy.get("snippet", {}).get("requirement")
                 responsibilities = vacancy.get("snippet", {}).get("responsibility")
                 company_name = vacancy.get("employer", {}).get("name")
+
                 print(f"ID: {id}\nНазвание: {title}\nКомпания: {company_name}\nТребования: {requirements}\nОбязанности: {responsibilities}\nСсылка: {url}\n")
 
                 # запись в базу данных
 
-                db = sqlite3.connect('vacancies.db')
-
-                c = db.cursor()
-
-                c.execute('''INSERT OR IGNORE INTO vacancies 
-                (id, title, url, requirements, responsibilities, company_name) 
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (id, title, url, requirements, responsibilities, company_name))
-
-                db.commit()
-
-                db.close()
-
         else:
             print(f"Request failed with status code: {response.status_code}")
-
-
-get_vacancies("python")
