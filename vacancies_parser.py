@@ -38,7 +38,7 @@ def get_vacancies(text):
     for page in range(1):
         params = {
             "text": text,  # ключевое слово для поиска вакансии
-            "area": 1,  # регион (1 - Москва)
+            "area": 2,  # регион (1 - Москва)
             # "experience": experience, # опыт работы
             # "employment": employment, # тип занятости
             # "schedule": schedule, # график работы
@@ -68,3 +68,5 @@ def get_vacancies(text):
 
         else:
             print(f"Request failed with status code: {response.status_code}")
+
+print(get_vacancies("python"))
